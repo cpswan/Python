@@ -4,7 +4,7 @@ based on python-uinput/examples/joystick.py by tuomasjjrasanen
 https://github.com/tuomasjjrasanen/python-uinput/blob/master/examples/joystick.py
 requires uinput kernel module (sudo modprobe uinput)
 requires python-uinput (git clone https://github.com/tuomasjjrasanen/python-uinput)
-requires (from http://pypi.python.org/pypi/RPi.GPIO/0.3.1a)
+requires python RPi.GPIO (from http://pypi.python.org/pypi/RPi.GPIO/0.3.1a)
 for detailed usage see http://blog.thestateofme.com/2012/08/10/raspberry-pi-gpio-joystick/
 
 Changes
