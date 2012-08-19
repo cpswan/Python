@@ -6,6 +6,10 @@ requires uinput kernel module (sudo modprobe uinput)
 requires python-uinput (git clone https://github.com/tuomasjjrasanen/python-uinput)
 requires (from http://pypi.python.org/pypi/RPi.GPIO/0.3.1a)
 for detailed usage see http://blog.thestateofme.com/2012/08/10/raspberry-pi-gpio-joystick/
+
+Changes
+
+19 Aug 2012 - inputs set to use internal pull ups rather than external 10k resistors
 """
 
 
@@ -15,11 +19,11 @@ import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BOARD)
 # Up, Down, left, right, fire
-GPIO.setup(11, GPIO.IN)
-GPIO.setup(13, GPIO.IN)
-GPIO.setup(15, GPIO.IN)
-GPIO.setup(16, GPIO.IN)
-GPIO.setup(7, GPIO.IN)
+GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(13, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 events = (uinput.BTN_JOYSTICK, uinput.ABS_X + (0, 255, 0, 0), uinput.ABS_Y + (0, 255, 0, 0))
 
