@@ -43,7 +43,7 @@ do_headers = {'Content-Type': 'application/json',
 
 def getopts(argv):
     try:
-        opts = getopt.getopt(argv,"hc:d:",["certname=","domain="])
+        opts, args = getopt.getopt(argv,"hc:d:",["certname=","domain="])
     except getopt.GetoptError:
         print('Incorrect arguments. Use: cert_cert.py -c <cert_name> -d <domain>')
         sys.exit(2)
@@ -106,10 +106,10 @@ def create_cname():
         return(cname_id)
 
 def test_cname():
-    cname_propagated='false'
+    cname_propagated=False
     wait_time=10
     dns_resolver=dns.resolver.Resolver()
-    while cname_propagated == 'false':
+    while not(cname_propagated):
         try:
             dnslookup = dns_resolver.resolve(f'{cname_host}.{base_domain}', 'CNAME')
         except Exception as e:
@@ -117,7 +117,7 @@ def test_cname():
             dnslookup = ''
         if len(dnslookup):
             #print ('CNAME found:', dnslookup)
-            cname_propagated='true'
+            cname_propagated=True
         else:
             print('Waiting for ',wait_time)
             time.sleep(wait_time)
@@ -151,13 +151,13 @@ def validate_cert(retry):
 def check_cert():
     api_url = f'{zerossl_base}certificates/{cert_id}?access_key={zerossl_token}'
 
-    cert_issued='false'
+    cert_issued=False
     wait_time=10
-    while cert_issued == 'false':
+    while not(cert_issued):
         cert_verf = requests.get(api_url)
         if cert_verf.json()['status'] == 'issued':
             #print ('Cert is ready to download')
-            cert_issued='true'
+            cert_issued=True
         else:
             #print('Waiting for ',wait_time)
             time.sleep(wait_time)
