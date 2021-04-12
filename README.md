@@ -6,8 +6,12 @@ Repo for Python scripts
 [Raspberry Pi Alarm](http://blog.thestateofme.com/2012/08/02/raspberry-pi-alarm/)
 
 ## get_cert.py
-Script to create a certificate using ZeroSSL API along with Digital Ocean API for CNAME validation  
-Usage: `./get_cert.py -d my.domain.name -c certificate_name`
+Script to create a certificate using [ZeroSSL API](https://zerossl.com/documentation/api/)
+along with [Digital Ocean API](https://developers.digitalocean.com/documentation/v2/)
+for CNAME validation  
+Usage: `./get_cert.py -d my.domain.name -c certificate_name`  
+
+Uses [f-strings](https://realpython.com/python-f-strings/), so Python 3.6 or later needed.
 
 ## incdec.py
 [Renumbering (and renaming) media files](http://blog.thestateofme.com/2010/10/05/renumbering-media-files/)  
