@@ -189,7 +189,7 @@ cert_name=cli_opts[0]+'.'+base_domain
 try: 
     generate_csr = subprocess.run(['openssl','req','-new','-newkey','rsa:2048','-nodes',
     '-out',f'{cert_name}.csr','-keyout',f'{cert_name}.key',
-    '-subj',f'/C=GB/ST=London/L=London/O=Example/OU=Testing/CN={cert_name}'],
+    '-subj',f'/CN={cert_name}'],
     stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 except subprocess.CalledProcessError as e:
     print(generate_csr)
