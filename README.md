@@ -13,6 +13,8 @@ Usage: `./get_cert.py -d my.domain.name -c certificate_name`
 
 Uses [f-strings](https://realpython.com/python-f-strings/), so Python 3.6 or later needed.
 
+See [ZeroSSL API – The missing examples](https://blog.thestateofme.com/2021/04/02/zerossl-api-the-missing-examples/) for a shell based walkthrough of the steps in this script.
+
 ## incdec.py
 [Renumbering (and renaming) media files](http://blog.thestateofme.com/2010/10/05/renumbering-media-files/)  
 
