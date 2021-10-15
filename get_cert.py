@@ -42,8 +42,9 @@ do_headers = {'Content-Type': 'application/json',
               'Authorization': f'Bearer {do_token}'}
 
 def getopts(argv):
+    verbose = False
     try:
-        opts, args = getopt.getopt(argv,"hc:d:",["certname=","domain="])
+        opts, args = getopt.getopt(argv,"hc:d:v",["certname=","domain=","verbose"])
     except getopt.GetoptError:
         print('Incorrect arguments. Use: get_cert.py -c <cert_name> -d <domain>')
         sys.exit(2)
@@ -56,13 +57,15 @@ def getopts(argv):
                 cert_name = arg
             elif opt in ("-d", "--domain"):
                 base_domain = arg
+            elif opt in ("-v", "--verbose"):
+                verbose = True
     else:
         print('No arguments passed. Use: get_cert.py -c <cert_name> -d <domain>')
         sys.exit(2)
-    return (cert_name,base_domain)
+    return (cert_name,base_domain,verbose)
 
 def draft_cert():
-    logging.info('Drafting certificate')
+    mylogs.info('Drafting certificate')
     api_url = f'{zerossl_base}certificates?access_key={zerossl_token}'
     # Read CSR file into variable and strip out newlines
     with open(f'{cert_name}.csr', 'r') as csr:
@@ -76,20 +79,19 @@ def draft_cert():
     resp_file.write(cert_req.text)
     resp_file.close()
     if 'id' not in cert_req.json():
-        logging.warning(f'Drafting certificate failed\n{cert_req.text}')
-        print(f'Drafting certificate failed\n{cert_req.text}')
+        mylogs.warning(f'Drafting certificate failed\n{cert_req.text}')
         sys.exit(3)
     else:
         cert_id=cert_req.json()['id']
-        logging.info(f'Certificate ID is: {cert_id}')    
+        mylogs.info(f'Certificate ID is: {cert_id}')    
         cname_host=(cert_req.json()['validation']['other_methods'][f'{cert_name}']['cname_validation_p1']).replace(f'.{base_domain}','')
-        logging.info(f'CNAME host is: {cname_host}')
+        mylogs.info(f'CNAME host is: {cname_host}')
         cname_value=cert_req.json()['validation']['other_methods'][f'{cert_name}']['cname_validation_p2']
-        logging.info(f'CNAME value is: {cname_value}')
+        mylogs.info(f'CNAME value is: {cname_value}')
         return(cert_id,cname_host,cname_value)
 
 def create_cname():
-    logging.info('Creating CNAME')
+    mylogs.info('Creating CNAME')
     api_url = f'{do_base}domains/{base_domain}/records'
 
     cname_params = {'type' : 'CNAME', 'name' : f'{cname_host.lower()}',
@@ -103,16 +105,15 @@ def create_cname():
     name_file.write(cname_add.text)
     name_file.close()
     if 'domain_record' not in cname_add.json():
-        logging.warning(f'Adding CNAME failed\n{cname_add.text}')
-        print(f'Adding CNAME failed\n{cname_add.text}')
+        mylogs.warning(f'Adding CNAME failed\n{cname_add.text}')
         sys.exit(4)
     else:    
         cname_id=cname_add.json()['domain_record']['id']
-        logging.info(f'Created CNAME ID: {cname_id}')
+        mylogs.info(f'Created CNAME ID: {cname_id}')
         return(cname_id)
 
 def test_cname():
-    logging.info('Testing CNAME')
+    mylogs.info('Testing CNAME')
     cname_propagated='false'
     wait_time=10
     dns_resolver=dns.resolver.Resolver()
@@ -123,19 +124,19 @@ def test_cname():
             print(e)
             dnslookup = ''
         if len(dnslookup):
-            logging.info(f'CNAME found: {dnslookup}')
+            mylogs.info(f'CNAME found: {dnslookup}')
             cname_propagated='true'
         else:
-            logging.info('Waiting for ',wait_time)
+            mylogs.info('Waiting for ',wait_time)
             time.sleep(wait_time)
             wait_time=wait_time*2
             if wait_time > 320:
-                logging.warning('Waited too long for DNS')
+                mylogs.warning('Waited too long for DNS')
                 print('Waited too long for DNS')
                 sys.exit(5)
 
 def validate_cert(retry):
-    logging.info('Validating certificate')
+    mylogs.info('Validating certificate')
     retries=retry+1
 
     api_url = f'{zerossl_base}certificates/{cert_id}/challenges?access_key={zerossl_token}'
@@ -144,11 +145,10 @@ def validate_cert(retry):
     
     if 'id' not in cert_vald.json():
         if retries == 6:
-            logging.warning(f'Certificate validation failed\n{cert_vald.text}')
-            print(f'Certificate validation failed\n{cert_vald.text}')
+            mylogs.warning(f'Certificate validation failed\n{cert_vald.text}')
             sys.exit(6)
         else:
-            logging.info(f'Retry {retries} for {cert_name}' )
+            mylogs.info(f'Retry {retries} for {cert_name}' )
             time.sleep(10^retries)
             validate_cert(retries)
     
@@ -157,7 +157,7 @@ def validate_cert(retry):
     resp_file.close()
 
 def check_cert():
-    logging.info('Checking certificate')
+    mylogs.info('Checking certificate')
     api_url = f'{zerossl_base}certificates/{cert_id}?access_key={zerossl_token}'
 
     cert_issued='false'
@@ -165,19 +165,18 @@ def check_cert():
     while cert_issued == 'false':
         cert_verf = requests.get(api_url)
         if cert_verf.json()['status'] == 'issued':
-            logging.info('Cert is ready to download')
+            mylogs.info('Cert is ready to download')
             cert_issued='true'
         else:
-            logging.info(f'Waiting for {wait_time}')
+            mylogs.info(f'Waiting for {wait_time}')
             time.sleep(wait_time)
             wait_time=wait_time*2
             if wait_time > 320:
-                logging.warning('Waited too long for cert to be issued')
-                print('Waited too long for cert to be issued')
+                mylogs.warning('Waited too long for cert to be issued')
                 sys.exit(7)
     
 def get_cert():
-    logging.info('Downloading certificate')
+    mylogs.info('Downloading certificate')
     api_url = f'{zerossl_base}certificates/{cert_id}/download/return?access_key={zerossl_token}'
 
     cert = requests.get(api_url)
@@ -194,26 +193,44 @@ def delete_cname():
     logging.info('Deleting CNAME')
     api_url = f'{do_base}domains/{base_domain}/records/{cname_id}'
 
-    cname_del = requests.delete(api_url, headers=do_headers)
+    requests.delete(api_url, headers=do_headers)
     
 # Extract base_domain and cert_name from command line options
 cli_opts=getopts(sys.argv[1:])
 base_domain=cli_opts[1]
 cert_name=cli_opts[0]+'.'+base_domain
+verbose=cli_opts[2]
 
 # Setup logging
-logging.basicConfig(filename=f'{cert_name}.log', format='%(asctime)s %(message)s', level=logging.INFO)
+mylogs = logging.getLogger(__name__)
+mylogs.setLevel(logging.DEBUG)
+
+logformat = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
+
+logfile = logging.FileHandler(f'{cert_name}.log')
+logfile.setLevel(logging.INFO)
+logfile.setFormatter(logformat)
+
+mylogs.addHandler(logfile)
+
+logstream = logging.StreamHandler()
+if verbose:
+    logstream.setLevel(logging.INFO)
+else:
+    logstream.setLevel(logging.WARN)
+logstream.setFormatter(logformat)
+
+mylogs.addHandler(logstream)
 
 # Generate a Certificate Signing Request (CSR) using OpenSSL
-logging.info(f'Creating CSR {cert_name}.csr')
+mylogs.info(f'Creating CSR {cert_name}.csr')
 try: 
     generate_csr = subprocess.run(['openssl','req','-new','-newkey','rsa:2048','-nodes',
     '-out',f'{cert_name}.csr','-keyout',f'{cert_name}.key',
     '-subj',f'/CN={cert_name}'],
     stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 except subprocess.CalledProcessError as e:
-    logging.warning(f'CSR generation failed {e.output}')
-    print(f'CSR generation failed {e.output}')
+    mylogs.warning(f'CSR generation failed {e.output}')
 
 # Draft a certificate and extract id and cname parameters from response
 cert_details=draft_cert()
