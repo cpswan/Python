@@ -121,18 +121,17 @@ def test_cname():
         try:
             dnslookup = dns_resolver.resolve(f'{cname_host}.{base_domain}', 'CNAME')
         except Exception as e:
-            print(e)
+            mylogs.warning(e)
             dnslookup = ''
         if len(dnslookup):
             mylogs.info(f'CNAME found: {dnslookup}')
             cname_propagated='true'
         else:
-            mylogs.info('Waiting for ',wait_time)
+            mylogs.info(f'Waiting for {wait_time}')
             time.sleep(wait_time)
             wait_time=wait_time*2
             if wait_time > 320:
                 mylogs.warning('Waited too long for DNS')
-                print('Waited too long for DNS')
                 sys.exit(5)
 
 def validate_cert(retry):
@@ -190,7 +189,7 @@ def get_cert():
     ca_file.close()
 
 def delete_cname():
-    logging.info('Deleting CNAME')
+    mylogs.info('Deleting CNAME')
     api_url = f'{do_base}domains/{base_domain}/records/{cname_id}'
 
     requests.delete(api_url, headers=do_headers)
